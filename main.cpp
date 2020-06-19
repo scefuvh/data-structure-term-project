@@ -528,8 +528,7 @@ unsigned StyleHead::pick_kth_nearest(int start, int afterend, unsigned k)
 {
     while(start < afterend)
     {
-        unsigned random_number = rand() % (afterend - start) + start;
-        unsigned pivot_index = random_number;
+        unsigned pivot_index = rand() % (afterend - start) + start;
         pivot_index = partition(start, afterend, pivot_index);
         if(k == pivot_index)
             return k;
@@ -548,7 +547,7 @@ unsigned StyleHead::partition(int start, int afterend, unsigned k)
     style_vector[k] = style_vector[afterend - 1];
     style_vector[afterend - 1] = pivot;
     unsigned store_index = start;
-    for(int i = start; i < afterend - 2; i++)
+    for(int i = start; i < afterend - 1; i++)
         if(style_vector[i] < pivot)
         {
             StyleIndex temp = style_vector[i];
@@ -646,6 +645,7 @@ void style_insert
     }
     else
     {
+        tmp_head.style_vector.resize(80000);
         tmp_head.style_vector.push_back(tmp_index);
         style_heads.insert(tmp_head);
     }
