@@ -409,8 +409,55 @@ struct StyleIndex
     double dis;
     int x, y;
     bool valid = false;
+    bool operator> (const StyleIndex &b);
+    bool operator< (const StyleIndex &b);
+    bool operator>= (const StyleIndex &b);
+    bool operator<= (const StyleIndex &b);
+    bool operator== (const StyleIndex &b);
+    bool operator!= (const StyleIndex &b);
 };
 
+bool StyleIndex::operator > (const StyleIndex &b)
+{
+    if(dis != b.dis)
+        return dis > b.dis;
+    return strcmp(name, b.name) > 0;
+}
+
+bool StyleIndex::operator < (const StyleIndex &b)
+{
+    if(dis != b.dis)
+        return dis < b.dis;
+    return strcmp(name, b.name) < 0;
+}
+
+bool StyleIndex::operator <= (const StyleIndex &b)
+{
+    if(dis != b.dis)
+        return dis <= b.dis;
+    return strcmp(name, b.name) <= 0;
+}
+
+bool StyleIndex::operator >= (const StyleIndex &b)
+{
+    if(dis != b.dis)
+        return dis >= b.dis;
+    return strcmp(name, b.name) >= 0;
+}
+
+bool StyleIndex::operator != (const StyleIndex &b)
+{
+    if(dis != b.dis)
+        return true;
+    return strcmp(name, b.name) != 0;
+}
+
+bool StyleIndex::operator == (const StyleIndex &b)
+{
+    if(dis != b.dis)
+        return false;
+    return strcmp(name, b.name) == 0;
+}
 
 
 struct NameIndex
@@ -447,14 +494,7 @@ struct StyleHead
 {
     vector<StyleIndex> style_vector;
     char cooking_style[15];
-    unsigned sort_by_distance
-    (
-        int start, int afterend,
-        unsigned k,
-        const unsigned &x, const unsigned &y
-    );
-    bool pos_greater(StyleIndex &a, StyleIndex &b,
-                 const int &x, const int &y);
+    unsigned pick_kth_nearest(int start, int afterend, unsigned k);
     bool operator <(const StyleHead &a) const
     {
         return strcmp(cooking_style, a.cooking_style) < 0;
@@ -480,46 +520,41 @@ struct StyleHead
         return strcmp(cooking_style, a.cooking_style) != 0;
     }
     protected:
-        unsigned partition(int start, int afterend, unsigned k,
-    const unsigned &x, const unsigned &y);
+        unsigned partition(int start, int afterend, unsigned k);
 };
 
 
-unsigned StyleHead::sort_by_distance
-(
-    int start, int afterend, unsigned k,
-    const unsigned &x, const unsigned &y
-)
+unsigned StyleHead::pick_kth_nearest(int start, int afterend, unsigned k)
 {
-    while(afterend - start <= 1)
+    while(start < afterend)
     {
         unsigned random_number = rand() % (afterend - start) + start;
-        unsigned pivot = random_number;
-        pivot = partition(start, afterend, pivot, x, y);
-        if(k == pivot)
+        unsigned pivot_index = random_number;
+        pivot_index = partition(start, afterend, pivot_index);
+        if(k == pivot_index)
             return k;
-        else if(k < pivot)
-            afterend = pivot;
+        else if(k < pivot_index)
+            afterend = pivot_index;
         else
-            start = pivot + 1;
+            start = pivot_index + 1;
     }
     return start;
 }
 
 
-unsigned StyleHead::partition(int start, int afterend, unsigned k,
-    const unsigned &x, const unsigned &y)
+unsigned StyleHead::partition(int start, int afterend, unsigned k)
 {
     StyleIndex pivot = style_vector[k];
     style_vector[k] = style_vector[afterend - 1];
     style_vector[afterend - 1] = pivot;
     unsigned store_index = start;
     for(int i = start; i < afterend - 2; i++)
-        if(pos_greater(pivot, style_vector[i], x, y))
+        if(style_vector[i] < pivot)
         {
             StyleIndex temp = style_vector[i];
             style_vector[i] = style_vector[store_index];
             style_vector[store_index] = temp;
+            store_index++;
         }
     StyleIndex temp = style_vector[afterend-1];
     style_vector[afterend-1] = style_vector[store_index];
@@ -563,25 +598,6 @@ unsigned StyleHead::partition(int start, int afterend, unsigned k,
 //}
 
 
-bool StyleHead::pos_greater(StyleIndex &a, StyleIndex &b,
-                 const int &x, const int &y)
-{
-    if(!a.valid)
-    {
-        a.dis = floor(hypot(x - a.x, y - a.y) * 1000 + 0.5) / 1000;
-        a.valid = true;
-    }
-    if(!b.valid)
-    {
-        b.dis = floor(hypot(x - b.x, y - b.y) * 1000 + 0.5) / 1000;
-        b.valid = true;
-    }
-    if(a.dis != b.dis)
-        return a.dis > b.dis;
-    return strcmp(a.name, b.name) > 0;
-}
-
-
 //void name_insert
 //(
 // BinaryTree<NameIndex> &name_index,
@@ -622,13 +638,11 @@ void style_insert
     StyleHead tmp_head;
     scanf("%s %u %u %s", tmp_index.name, &(tmp_index.x), &(tmp_index.y),
             tmp_head.cooking_style);
-
     auto p = style_heads.search(tmp_head);
-
     if(p)
     {
-        StyleHead &tmp_head = p -> value;
-        tmp_head.style_vector.push_back(tmp_index);
+        StyleHead &head_ref = p -> value;
+        head_ref.style_vector.push_back(tmp_index);
     }
     else
     {
@@ -649,17 +663,20 @@ void style_print(const BinaryTree<StyleHead> &style_heads)
     srand(time(NULL));
     if(p)
     {
-        auto &tmp_head = p -> value;
-        unsigned size = tmp_head.style_vector.size();
-        tmp_head.sort_by_distance(0, size, x, y);
+        StyleHead &head_ref = p -> value;
+        unsigned size = head_ref.style_vector.size();
         unsigned limit = min(k, size);
+        for(unsigned i = 0; i < size; i++)
+        {
+            StyleIndex &index_ref = head_ref.style_vector[i];
+            index_ref.dis = floor(hypot(x - index_ref.x, y - index_ref.y) * 1000 + 0.5) / 1000;
+        }
         for(unsigned i = 0; i < limit; i++)
         {
-            auto &entry = tmp_head.style_vector[i];
-            printf("%s %.3f\n", entry.name, tmp_head.style_vector[i].dis);
+            unsigned pos = head_ref.pick_kth_nearest(0, size, i);
+            auto &entry = head_ref.style_vector[pos];
+            printf("%s %.3f\n", entry.name, head_ref.style_vector[i].dis);
         }
-        for(unsigned i = 0; i < size; i++)
-            tmp_head.style_vector[i].valid = false;
     }
     else
         printf("\n");
@@ -676,7 +693,7 @@ int main()
     unsigned m, n;
     BinaryTree<NameIndex> name_index;
     BinaryTree<StyleHead> style_heads;
-    NameIndex tmp_index;
+    //NameIndex tmp_index;
     StyleIndex style_tmp_index;
     scanf("%u%u", &m, &n);
     for(unsigned i = 0; i < m; i++)
