@@ -32,4 +32,5 @@
 *.app
 
 # Self-defined
-Ds-Task*
+D[Ss]-Task*
+testdata.*
