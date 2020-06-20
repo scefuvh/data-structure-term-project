@@ -462,7 +462,8 @@ bool StyleIndex::operator == (const StyleIndex &b)
 
 struct NameIndex
 {
-    char name[15];
+    char name[15], cooking_style[15];
+    unsigned x, y;
     bool operator <(const NameIndex &a) const
     {
         return strcmp(name, a.name) < 0;
@@ -496,7 +497,7 @@ struct StyleHead
     char cooking_style[15];
     unsigned pick_kth_nearest(int start, int afterend, unsigned k);
     void sort(int start, int afterend);
-    void exchange(unsigned a, unsigned b)
+    void exchange(int a, int b)
     {
         StyleIndex tmp = style_vector[a];
         style_vector[a] = style_vector[b];
@@ -534,7 +535,7 @@ struct StyleHead
 
 void StyleHead::sort(int start, int afterend)
 {
-    while(start != afterend)
+    while(afterend - start > 2)
     {
 
         // Take the median as pivot
@@ -548,7 +549,7 @@ void StyleHead::sort(int start, int afterend)
         StyleIndex pivot = style_vector[start];
 
         // Start partitioning
-        int i = start, j = afterend - 1;
+        int i = start + 1, j = afterend - 1;
         while(true)
         {
             while(style_vector[i] < pivot)
@@ -561,8 +562,11 @@ void StyleHead::sort(int start, int afterend)
             ++i;
         }
         sort(i, afterend);
+        if(afterend == i) return;
         afterend = i;
     }
+    if(style_vector[afterend - 1] < style_vector[start])
+        exchange(afterend-1, start);
     return;
 }
 
@@ -605,43 +609,32 @@ unsigned StyleHead::partition(int start, int afterend, unsigned k)
 }
 
 
-//void name_insert
-//(
-// BinaryTree<NameIndex> &name_index,
-// NameIndex &tmp_index,
-// LinkedList<House> houses,
-// unsigned pos
-//)
-//{
-//    House entry;
-//    scanf("%s%d%d%s", entry.name, &entry.x, &entry.y, entry.cooking_style);
-//    memcpy(tmp_index.name, entry.name, sizeof(entry.name));
-//    houses.insert(entry, pos);
-//    tmp_index.p = &houses[pos] -> value;
-//    name_index.insert(tmp_index);
-//}
-
-
-//void name_print(const BinaryTree<NameIndex> &name_index, NameIndex &tmp_index)
-//{
-//    scanf("%s", tmp_index.name);
-//    const auto &p = name_index.search(tmp_index);
-//    if(p)
-//    {
-//        auto &entry = *(p -> value.p);
-//        printf("%u %u\n", entry.x, entry.y);
-//    }
-//    else
-//        printf("\n");
-//}
-
-
-void style_insert
-(
-    BinaryTree<StyleHead> &style_heads,
-    StyleIndex &tmp_index
-)
+void name_insert(BinaryTree<NameIndex> &name_index)
 {
+    NameIndex tmp_index;
+    scanf("%s%d%d%s", tmp_index.name, &tmp_index.x, &tmp_index.y, tmp_index.cooking_style);
+    name_index.insert(tmp_index);
+}
+
+
+void name_print(const BinaryTree<NameIndex> &name_index)
+{
+    NameIndex tmp_index;
+    scanf("%s", tmp_index.name);
+    const auto &p = name_index.search(tmp_index);
+    if(p)
+    {
+        const auto &entry = p -> value;
+        printf("%u %u\n", entry.x, entry.y);
+    }
+    else
+        printf("\n");
+}
+
+
+void style_insert(BinaryTree<StyleHead> &style_heads)
+{
+    StyleIndex tmp_index;
     StyleHead tmp_head;
     scanf("%s %u %u %s", tmp_index.name, &(tmp_index.x), &(tmp_index.y),
             tmp_head.cooking_style);
@@ -678,7 +671,7 @@ void style_print(const BinaryTree<StyleHead> &style_heads)
             index_ref.dis = floor(hypot(x - index_ref.x, y - index_ref.y) * 1000 + 0.5) / 1000;
         }
         head_ref.pick_kth_nearest(0, size, limit - 1);
-        //head_ref.sort(0, limit);
+        head_ref.sort(0, limit);
         for(unsigned i = 0; i < limit; i++)
         {
             auto &entry = head_ref.style_vector[i];
@@ -698,22 +691,19 @@ int main()
 #endif
 
     unsigned m, n;
-    BinaryTree<NameIndex> name_index;
-    BinaryTree<StyleHead> style_heads;
-    //NameIndex tmp_index;
-    StyleIndex style_tmp_index;
+    //BinaryTree<NameIndex> name_index;
+    //BinaryTree<StyleHead> style_heads;
     scanf("%u%u", &m, &n);
     for(unsigned i = 0; i < m; i++)
     {
-        //name_insert(name_index, tmp_index, houses, i);
-        style_insert(style_heads, style_tmp_index);
+        //name_insert(name_index);
+        //style_insert(style_heads);
     }
 
-    srand(time(NULL));
     while(n--)
     {
-        //name_print(name_index, tmp_index);
-        style_print(style_heads);
+        //name_print(name_index);
+        //style_print(style_heads);
     }
     return 0;
 }
