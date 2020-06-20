@@ -113,7 +113,7 @@ int main()
                 r = eq(myout, out_f);
             }
             else{
-                // 如果读写不计时（将io限制在内存）的话，可以用ostringstream，istringstream 进行修改 
+                // 如果读写不计时（将io限制在内存）的话，可以用ostringstream，istringstream 进行修改
                 //读数据
                 string in_str=readfile( in_f);
                 istringstream  infile(in_str);
@@ -148,7 +148,7 @@ int main()
             {
                 cout << " x " << endl;
             }
-            
+
         }
     cout << "alltime: " << alltime / 1000000 << "s" << endl;
     closedir(dp);

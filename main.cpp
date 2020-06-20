@@ -495,6 +495,14 @@ struct StyleHead
     vector<StyleIndex> style_vector;
     char cooking_style[15];
     unsigned pick_kth_nearest(int start, int afterend, unsigned k);
+    void sort(int start, int afterend);
+    void exchange(unsigned a, unsigned b)
+    {
+        StyleIndex tmp = style_vector[a];
+        style_vector[a] = style_vector[b];
+        style_vector[b] = tmp;
+        return;
+    }
     bool operator <(const StyleHead &a) const
     {
         return strcmp(cooking_style, a.cooking_style) < 0;
@@ -522,6 +530,41 @@ struct StyleHead
     protected:
         unsigned partition(int start, int afterend, unsigned k);
 };
+
+
+void StyleHead::sort(int start, int afterend)
+{
+    while(start != afterend)
+    {
+
+        // Take the median as pivot
+        int mid = start +  (afterend - start) / 2;
+        if(style_vector[afterend-1] < style_vector[start])
+            exchange(afterend-1, start);
+        if(style_vector[afterend-1] < style_vector[mid])
+            exchange(mid, afterend-1);
+        if(style_vector[start] < style_vector[mid])
+            exchange(start, mid);
+        StyleIndex pivot = style_vector[start];
+
+        // Start partitioning
+        int i = start, j = afterend - 1;
+        while(true)
+        {
+            while(style_vector[i] < pivot)
+                ++i;
+            --j;
+            while(pivot < style_vector[j])
+                --j;
+            if(i >= j) break;
+            exchange(i, j);
+            ++i;
+        }
+        sort(i, afterend);
+        afterend = i;
+    }
+    return;
+}
 
 
 unsigned StyleHead::pick_kth_nearest(int start, int afterend, unsigned k)
@@ -560,41 +603,6 @@ unsigned StyleHead::partition(int start, int afterend, unsigned k)
     style_vector[store_index] = temp;
     return store_index;
 }
-
-
-//void mysort(int start, int afterend)
-//{
-//    if(afterend - start <= 1) return;
-//    int pivot = list[afterend-1];
-//    list[afterend-1] = list[start];
-//    list[start] = pivot;
-//    int i = start + 1, j = afterend - 1;
-//
-//    while(i != j)
-//    {
-//        while(i != j && pivot >= list[i]) i++;
-//        while(i != j && pivot < list[j]) j--;
-//        int temp = list[i];
-//        list[i] = list[j];
-//        list[j] = temp;
-//    }
-//
-//    if(list[i] <= pivot)
-//    {
-//        list[start] = list[i];
-//        list[i] = pivot;
-//        j++;
-//    }
-//    else
-//    {
-//        list[start] = list[i-1];
-//        list[i-1] = pivot;
-//        i--;
-//    }
-//    mysort(0, i);
-//    mysort(j, afterend);
-//    return;
-//}
 
 
 //void name_insert
@@ -645,7 +653,6 @@ void style_insert
     }
     else
     {
-        tmp_head.style_vector.resize(80000);
         tmp_head.style_vector.push_back(tmp_index);
         style_heads.insert(tmp_head);
     }
@@ -660,7 +667,6 @@ void style_print(const BinaryTree<StyleHead> &style_heads)
     StyleHead tmp_head;
     scanf("%d%d%s%u", &x, &y, tmp_head.cooking_style, &k);
     auto p = style_heads.search(tmp_head);
-    srand(time(NULL));
     if(p)
     {
         StyleHead &head_ref = p -> value;
@@ -671,10 +677,11 @@ void style_print(const BinaryTree<StyleHead> &style_heads)
             StyleIndex &index_ref = head_ref.style_vector[i];
             index_ref.dis = floor(hypot(x - index_ref.x, y - index_ref.y) * 1000 + 0.5) / 1000;
         }
+        head_ref.pick_kth_nearest(0, size, limit - 1);
+        //head_ref.sort(0, limit);
         for(unsigned i = 0; i < limit; i++)
         {
-            unsigned pos = head_ref.pick_kth_nearest(0, size, i);
-            auto &entry = head_ref.style_vector[pos];
+            auto &entry = head_ref.style_vector[i];
             printf("%s %.3f\n", entry.name, head_ref.style_vector[i].dis);
         }
     }
@@ -702,6 +709,7 @@ int main()
         style_insert(style_heads, style_tmp_index);
     }
 
+    srand(time(NULL));
     while(n--)
     {
         //name_print(name_index, tmp_index);
