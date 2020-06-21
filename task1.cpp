@@ -1,8 +1,17 @@
+/*
+ * Copyright 2020 David Hu, all rights reserved.
+ * Email: 1697552203@qq.com
+ */
+
+
 #include<cstdio>
 #include "./include/name_index.h"
 #include "./include/binary_search_tree.h"
 
 
+/*
+ * Insert a resturant to name_index
+ */
 void name_insert(BinarySearchTree<NameIndex> &name_index)
 {
     NameIndex tmp_index;
@@ -11,6 +20,9 @@ void name_insert(BinarySearchTree<NameIndex> &name_index)
 }
 
 
+/*
+ * print the restaurant of a given name from name_index
+ */
 void name_print(const BinarySearchTree<NameIndex> &name_index)
 {
     NameIndex tmp_index;

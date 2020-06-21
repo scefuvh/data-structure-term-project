@@ -100,6 +100,8 @@ void StyleHead::sort(int start, int afterend)
         if(afterend == i) return;
         afterend = i;
     }
+
+    // Final sort.
     if(style_vector[afterend - 1] < style_vector[start])
         exchange(afterend-1, start);
     return;
@@ -111,8 +113,11 @@ unsigned StyleHead::pick_kth_nearest(int start, int afterend, unsigned k)
     srand(time(NULL));
     while(start < afterend)
     {
+        // Choose a pivot
         unsigned pivot_index = rand() % (afterend - start) + start;
         pivot_index = partition(start, afterend, pivot_index);
+
+        // Narrowing down
         if(k == pivot_index)
             return k;
         else if(k < pivot_index)
@@ -126,9 +131,11 @@ unsigned StyleHead::pick_kth_nearest(int start, int afterend, unsigned k)
 
 unsigned StyleHead::partition(int start, int afterend, unsigned k)
 {
+    // Partitioning according to the given pivot.
     StyleIndex pivot = style_vector[k];
     style_vector[k] = style_vector[afterend - 1];
     style_vector[afterend - 1] = pivot;
+
     unsigned store_index = start;
     for(int i = start; i < afterend - 1; i++)
         if(style_vector[i] < pivot)
@@ -138,9 +145,11 @@ unsigned StyleHead::partition(int start, int afterend, unsigned k)
             style_vector[store_index] = temp;
             store_index++;
         }
+
     StyleIndex temp = style_vector[afterend-1];
     style_vector[afterend-1] = style_vector[store_index];
     style_vector[store_index] = temp;
+
     return store_index;
 }
 
