@@ -1,5 +1,6 @@
 .PHONY: source
 source: task1 task2
+	@echo "Begin compiling"
 
 task1: ./task1.cpp ./include/name_index.h ./include/binary_search_tree.h ./source/name_index.cpp ./source/binary_search_tree.cpp
 	g++ task1.cpp ./source/name_index.cpp -o task1
