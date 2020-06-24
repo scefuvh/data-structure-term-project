@@ -18,5 +18,5 @@ Execute `make remove` in this direcotory.
 
 ****
 
-Author: 胡泓震10195101485  
+Author: 胡泓震
 Email: 1697552203@qq.com
